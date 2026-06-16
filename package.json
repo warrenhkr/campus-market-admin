@@ -1,10 +1,10 @@
-{
+﻿{
   "name": "campus-market-admin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -46,3 +46,4 @@
     "typescript": "^5"
   }
 }
+
