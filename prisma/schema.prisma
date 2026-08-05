@@ -410,3 +410,11 @@ model AdminOtpRateLimit {
 
   @@map("admin_otp_rate_limits")
 }
+
+model ProcessedWebhook {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  transaction_id String   @unique
+  processed_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("processed_webhooks")
+}
