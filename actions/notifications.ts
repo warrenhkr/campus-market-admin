@@ -22,7 +22,7 @@ export async function createNotification({
   type: string
   title: string
   message: string
-  metadata?: Record<string, unknown>
+  metadata?: any
 }): Promise<ActionResult> {
   try {
     await assertAdmin()

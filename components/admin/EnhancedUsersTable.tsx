@@ -122,7 +122,7 @@ export function EnhancedUsersTable({
             label: 'Nom',
             sortable: false,
             width: '20%',
-            render: (name) => name || '-',
+            render: (name) => (name as string) || '-',
           },
           {
             key: 'role',
@@ -131,7 +131,7 @@ export function EnhancedUsersTable({
             width: '15%',
             render: (role) => (
               <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleBadgeColor(role as string)}`}>
-                {role}
+                {role as string}
               </span>
             ),
           },

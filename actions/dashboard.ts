@@ -58,7 +58,7 @@ export async function getDashboardKPIs() {
       totalSellers,
       totalProducts,
       totalOrders,
-      totalRevenue: totalRevenue._sum.amount || 0,
+      totalRevenue: Number(totalRevenue._sum.amount ?? 0),
     },
     recentActivity,
     systemAlerts,

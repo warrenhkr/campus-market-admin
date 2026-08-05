@@ -1,15 +1,18 @@
 import {
   getAllSellersWithSubscription,
   getSubscriptionKPIs,
+  getProPlanRequests,
 } from '@/actions/subscriptions'
 import { SubscriptionTable } from '@/components/admin/SubscriptionTable'
+import { ProPlanRequestsSection } from '@/components/admin/ProPlanRequestsSection'
 
 export const metadata = { title: 'Abonnements — Admin' }
 
 export default async function SubscriptionsPage() {
-  const [sellers, kpis] = await Promise.all([
+  const [sellers, kpis, proRequests] = await Promise.all([
     getAllSellersWithSubscription(),
     getSubscriptionKPIs(),
+    getProPlanRequests(),
   ])
 
   const kpiCards = [
@@ -47,6 +50,19 @@ export default async function SubscriptionsPage() {
       ) : (
         <SubscriptionTable sellers={sellers} />
       )}
+
+      {/* Demandes Plan Pro */}
+      <div className="mt-10">
+        <div className="mb-4 flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">Demandes plan Pro</h2>
+          {proRequests.length > 0 && (
+            <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              {proRequests.length}
+            </span>
+          )}
+        </div>
+        <ProPlanRequestsSection tickets={proRequests} />
+      </div>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client'
 export function buildSearchFilter(
   searchTerm: string | undefined,
   searchFields: string[],
-): Prisma.SQL | undefined {
+): Prisma.Sql | undefined {
   if (!searchTerm || !searchFields.length) return undefined
 
   const conditions = searchFields.map((field) => Prisma.sql`${Prisma.raw(field)} ILIKE ${`%${searchTerm}%`}`)
@@ -26,7 +26,7 @@ export interface DateRangeFilter {
 export function buildDateRangeFilter(dateRange: DateRangeFilter | undefined, field: string) {
   if (!dateRange) return undefined
 
-  const conditions: Prisma.SQL[] = []
+  const conditions: Prisma.Sql[] = []
 
   if (dateRange.from) {
     conditions.push(Prisma.sql`${Prisma.raw(field)} >= ${dateRange.from}`)
@@ -59,7 +59,7 @@ export interface PriceRangeFilter {
 export function buildPriceRangeFilter(priceRange: PriceRangeFilter | undefined, field = 'price') {
   if (!priceRange) return undefined
 
-  const conditions: Prisma.SQL[] = []
+  const conditions: Prisma.Sql[] = []
 
   if (priceRange.min !== undefined) {
     conditions.push(Prisma.sql`${Prisma.raw(field)} >= ${priceRange.min}`)

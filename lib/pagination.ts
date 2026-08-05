@@ -61,7 +61,8 @@ export function getCursorParams(cursor: string | null, limit: number): {
   cursor?: { id: string }
 } {
   return {
-    ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+    skip: cursor ? 1 : 0,
+    ...(cursor && { cursor: { id: cursor } }),
     take: limit + 1, // fetch one extra to know if there's a next page
   }
 }

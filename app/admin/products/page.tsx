@@ -4,9 +4,9 @@ import { ProductsModerationTable } from '@/components/admin/ProductsModerationTa
 export default async function ProductsPage() {
   const products = await getAllProducts()
 
-  const pending = products.filter((p) => p.status === 'PENDING_REVIEW').length
-  const approved = products.filter((p) => p.status === 'APPROVED').length
-  const rejected = products.filter((p) => p.status === 'REJECTED').length
+  const pending = products.filter((p: any) => p.status === 'PENDING_REVIEW').length
+  const approved = products.filter((p: any) => p.status === 'APPROVED').length
+  const rejected = products.filter((p: any) => p.status === 'REJECTED').length
 
   return (
     <div className="space-y-6">

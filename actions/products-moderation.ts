@@ -22,12 +22,29 @@ export async function approveProduct(productId: string): Promise<ActionResult> {
   try {
     const adminId = await assertAdmin()
 
-    const product = await prisma.product.findUnique({ where: { id: productId } })
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { shop: { include: { seller: true } } }
+    })
     if (!product) return { success: false, error: 'Produit non trouvé.' }
 
-    await prisma.product.update({
-      where: { id: productId },
-      data: { status: 'APPROVED' },
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: productId },
+        data: { status: 'APPROVED' },
+      })
+
+      if (product.shop?.seller?.user_id) {
+        await tx.notification.create({
+          data: {
+            user_id: product.shop.seller.user_id,
+            type: 'PRODUCT_APPROVED',
+            title: 'Produit approuvé',
+            message: `Votre produit "${product.name}" a été approuvé.`,
+            metadata: { productId: product.id },
+          }
+        })
+      }
     })
 
     await logAdminAction({
@@ -41,7 +58,7 @@ export async function approveProduct(productId: string): Promise<ActionResult> {
     revalidatePath('/admin/products')
     return { success: true, message: `"${product.name}" approuvé.` }
   } catch (err: any) {
-    return { success: false, error: err.message }
+    return { success: false, error: err.message ?? 'Erreur inconnue.' }
   }
 }
 
@@ -52,12 +69,31 @@ export async function rejectProduct(
   try {
     const adminId = await assertAdmin()
 
-    const product = await prisma.product.findUnique({ where: { id: productId } })
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { shop: { include: { seller: true } } }
+    })
     if (!product) return { success: false, error: 'Produit non trouvé.' }
 
-    await prisma.product.update({
-      where: { id: productId },
-      data: { status: 'REJECTED' },
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: productId },
+        data: { status: 'REJECTED' },
+      })
+
+      if (product.shop?.seller?.user_id) {
+        await tx.notification.create({
+          data: {
+            user_id: product.shop.seller.user_id,
+            type: 'PRODUCT_REJECTED',
+            title: 'Produit rejeté',
+            message: reason
+              ? `Votre produit "${product.name}" a été rejeté. Motif : ${reason}`
+              : `Votre produit "${product.name}" a été rejeté.`,
+            metadata: { productId: product.id, reason },
+          }
+        })
+      }
     })
 
     await logAdminAction({
@@ -71,7 +107,7 @@ export async function rejectProduct(
     revalidatePath('/admin/products')
     return { success: true, message: `"${product.name}" rejeté.` }
   } catch (err: any) {
-    return { success: false, error: err.message }
+    return { success: false, error: err.message ?? 'Erreur inconnue.' }
   }
 }
 

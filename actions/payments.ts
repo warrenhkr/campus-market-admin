@@ -21,7 +21,7 @@ async function assertAdmin(): Promise<string> {
 export async function getAllPayments(filters?: { status?: string }) {
   await assertAdmin()
 
-  return prisma.payment.findMany({
+  const payments = await prisma.payment.findMany({
     where: {
       ...(filters?.status && { status: filters.status as any }),
     },
@@ -46,6 +46,13 @@ export async function getAllPayments(filters?: { status?: string }) {
     },
     orderBy: { created_at: 'desc' },
   })
+
+  return payments.map((p: any) => ({
+    ...p,
+    amount: Number(p.amount),
+    platform_fee: Number(p.platform_fee),
+    seller_earning: Number(p.seller_earning)
+  }))
 }
 
 export async function getPaymentDetail(paymentId: string) {
@@ -141,8 +148,8 @@ export async function getPaymentStats() {
   ])
 
   return {
-    totalProcessed: totalProcessed._sum.amount || 0,
+    totalProcessed: Number(totalProcessed._sum.amount ?? 0),
     totalPending: totalPending._count,
-    totalRefunded: totalRefunded._sum.amount || 0,
+    totalRefunded: Number(totalRefunded._sum.amount ?? 0),
   }
 }

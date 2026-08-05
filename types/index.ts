@@ -1,5 +1,3 @@
-// Types globaux du panel admin
-
 export interface AdminUser {
   id: string
   email: string

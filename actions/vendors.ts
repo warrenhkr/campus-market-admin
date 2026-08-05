@@ -39,16 +39,17 @@ export async function approveVendor(sellerId: string): Promise<ActionResult> {
       const s = await tx.seller.update({
         where: { id: sellerId },
         data: { verification_status: 'APPROVED' },
-        include: { user: { select: { email: true, name: true } } },
+        include: { user: { select: { email: true, name: true, role: true } } },
       })
-      await tx.user.update({
-        where: { id: s.user_id },
-        data: { role: 'SELLER' },
-      })
+      if (s.user.role !== 'ADMIN') {
+        await tx.user.update({
+          where: { id: s.user_id },
+          data: { role: 'SELLER' },
+        })
+      }
       return s
     })
 
-    // Envoi email
     try {
       const resend = getResendClient()
       await resend.emails.send({
@@ -63,7 +64,6 @@ export async function approveVendor(sellerId: string): Promise<ActionResult> {
       })
     } catch (emailErr) {
       console.error('Email non envoyé (approbation):', emailErr)
-      // On ne bloque pas si l'email échoue
     }
 
     revalidatePath('/admin/vendors')
@@ -78,28 +78,22 @@ export async function rejectVendor(sellerId: string, reason: string): Promise<Ac
     await assertAdmin()
     if (!reason.trim()) return { success: false, error: 'Le motif est obligatoire.' }
 
-   const seller = await tx.seller.update({
-  where: { id: sellerId },
-  data: { verification_status: 'APPROVED' },
-  include: { user: { select: { email: true, name: true, role: true } } },
-})
+    const seller = await prisma.$transaction(async (tx) => {
+      const s = await tx.seller.update({
+        where: { id: sellerId },
+        data: { verification_status: 'REJECTED' },
+        include: { user: { select: { email: true, name: true } } },
+      })
+      return s
+    })
 
-// Ne jamais écraser le roleADMIN d'un 
-if (seller.user.role !== 'ADMIN') {
-  await tx.user.update({
-    where: { id: seller.user_id },
-    data: { role: 'SELLER' },
-  })
-}
-
-    // Envoi email
     try {
       const resend = getResendClient()
       await resend.emails.send({
         from: EMAIL_FROM,
         replyTo: EMAIL_REPLY_TO,
         to: seller.user.email,
-        subject: `Votre demande pour "${seller.shop_name}" n'a pas été approuvée`,
+        subject: `Refus de votre boutique "${seller.shop_name}"`,
         react: VendorRejectedEmail({
           shopName: seller.shop_name,
           sellerName: seller.user.name ?? undefined,
@@ -111,7 +105,7 @@ if (seller.user.role !== 'ADMIN') {
     }
 
     revalidatePath('/admin/vendors')
-    return { success: true, message: 'Vendeur rejeté.' }
+    return { success: true, message: 'Vendeur rejeté avec succès.' }
   } catch (err: any) {
     return { success: false, error: err.message ?? 'Erreur inconnue.' }
   }

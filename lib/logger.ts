@@ -5,7 +5,7 @@ interface LogEntry {
   timestamp: string
   message: string
   data?: unknown
-  error?: Error
+  error?: any
 }
 
 class Logger {
@@ -16,8 +16,8 @@ class Logger {
       level,
       timestamp: new Date().toISOString(),
       message,
-      ...(data && { data }),
-      ...(error && { error: { message: error.message, stack: error.stack } }),
+      ...(data ? { data } : {}),
+      ...(error ? { error: { message: error.message, stack: error.stack } } : {}),
     }
 
     // Console output

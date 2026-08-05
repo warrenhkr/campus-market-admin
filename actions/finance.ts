@@ -34,6 +34,7 @@ export async function getFinancialKPIs() {
 
   const refundedTotal = byStatus.find(s => s.status === 'REFUNDED')?._sum.amount ?? 0
   const failedCount = byStatus.find(s => s.status === 'FAILED')?._count.id ?? 0
+  const successfulPayments = byStatus.find(s => s.status === 'CAPTURED')?._count.id ?? 0
 
   return {
     totalRevenue:   Number(totals._sum.amount ?? 0),
@@ -42,6 +43,7 @@ export async function getFinancialKPIs() {
     sellerEarnings: Number(totals._sum.seller_earning ?? 0),
     totalRefunded:  Number(refundedTotal),
     failedCount:    Number(failedCount),
+    successfulPayments: Number(successfulPayments),
     ordersCount,
   }
 }

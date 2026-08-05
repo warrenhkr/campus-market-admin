@@ -15,6 +15,7 @@ import {
 type SellerRow = {
   id: string
   shop_name: string
+  subscription_plan: string
   subscription_expires_at: Date | null
   user: { name: string | null; email: string }
   shops: { id: string; name: string; slug: string }[]

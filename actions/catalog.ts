@@ -79,7 +79,7 @@ export async function getAllProducts(filters?: {
   search?: string
 }) {
   await assertAdmin()
-  return prisma.product.findMany({
+  const products = await prisma.product.findMany({
     where: {
       ...(filters?.categoryId && { category_id: filters.categoryId }),
       ...(filters?.available !== undefined && { is_available: filters.available }),
@@ -92,6 +92,11 @@ export async function getAllProducts(filters?: {
     },
     orderBy: { created_at: 'desc' },
   })
+  
+  return products.map((p: any) => ({
+    ...p,
+    price: Number(p.price)
+  }))
 }
 
 export async function toggleProductVisibility(productId: string, isAvailable: boolean): Promise<ActionResult> {

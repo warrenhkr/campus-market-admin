@@ -5,7 +5,7 @@ import { useRef, useTransition, useState } from 'react'
 import { rejectVendor } from '@/actions/vendors'
 
 type Props = {
-  vendor: { id: string; shop_name: string; users: { name: string | null } }
+  vendor: { id: string; shop_name: string; user: { name: string | null } }
   onSuccess: (vendorId: string, shopName: string) => void
   onClose: () => void
 }
@@ -46,7 +46,7 @@ export function RejectDialog({ vendor, onSuccess, onClose }: Props) {
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           Boutique <strong>{vendor.shop_name}</strong> de{' '}
-          {vendor.users.name ?? 'ce candidat'}.
+          {vendor.user.name ?? 'ce candidat'}.
           Un email leur sera envoyé avec votre motif.
         </p>
 

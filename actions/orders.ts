@@ -21,7 +21,7 @@ async function assertAdmin(): Promise<string> {
 export async function getAllOrders(filters?: { status?: string; search?: string }) {
   await assertAdmin()
 
-  return prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     where: {
       ...(filters?.status && { status: filters.status as any }),
       ...(filters?.search && {
@@ -41,6 +41,11 @@ export async function getAllOrders(filters?: { status?: string; search?: string 
     },
     orderBy: { order_date: 'desc' },
   })
+
+  return orders.map((o: any) => ({
+    ...o,
+    total_amount: Number(o.total_amount)
+  }))
 }
 
 export async function getOrderDetail(orderId: string) {

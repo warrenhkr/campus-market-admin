@@ -12,8 +12,8 @@ export async function logAdminAction({
   action: string
   resourceType: string
   resourceId?: string
-  changes?: Record<string, unknown>
-  metadata?: Record<string, unknown>
+  changes?: any
+  metadata?: any
 }) {
   try {
     await prisma.adminLog.create({

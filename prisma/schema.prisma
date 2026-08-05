@@ -1,13 +1,13 @@
 // schema.prisma - Campus Market
-// Configuré pour être 100% cohérent avec le script SQL Supabase
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // --- ENUMS ---
@@ -16,7 +16,6 @@ enum UserRole {
   USER
   SELLER
   ADMIN
-
   @@map("user_role")
 }
 
@@ -24,8 +23,15 @@ enum VerificationStatus {
   PENDING
   APPROVED
   REJECTED
-
   @@map("verification_status")
+}
+
+enum SubscriptionPlan {
+  DECOUVERTE
+  STARTER
+  BUSINESS
+  PRO
+  @@map("subscription_plan")
 }
 
 enum OrderStatus {
@@ -34,7 +40,6 @@ enum OrderStatus {
   CANCELLED
   SHIPPED
   DELIVERED
-
   @@map("order_status")
 }
 
@@ -44,7 +49,6 @@ enum PaymentStatus {
   CAPTURED
   FAILED
   REFUNDED
-
   @@map("payment_status")
 }
 
@@ -53,7 +57,6 @@ enum ProductStatus {
   APPROVED
   REJECTED
   HIDDEN
-
   @@map("product_status")
 }
 
@@ -62,7 +65,6 @@ enum SupportTicketStatus {
   IN_PROGRESS
   RESOLVED
   CLOSED
-
   @@map("support_ticket_status")
 }
 
@@ -71,7 +73,6 @@ enum SupportTicketPriority {
   MEDIUM
   HIGH
   URGENT
-
   @@map("support_ticket_priority")
 }
 
@@ -81,7 +82,6 @@ enum SupportTicketCategory {
   ACCOUNT
   DISPUTE
   OTHER
-
   @@map("support_ticket_category")
 }
 
@@ -90,7 +90,6 @@ enum ReportStatus {
   INVESTIGATING
   RESOLVED
   DISMISSED
-
   @@map("report_status")
 }
 
@@ -99,30 +98,36 @@ enum SystemAlertSeverity {
   WARNING
   ERROR
   CRITICAL
-
   @@map("system_alert_severity")
 }
 
 // --- MODELS ---
 
 model User {
-  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email      String   @unique
-  name       String?
-  avatar_url String?
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  updated_at DateTime @default(now()) @db.Timestamptz(6)
-  role       UserRole @default(USER)
+  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email              String   @unique
+  name               String?
+  avatar_url         String?
+  phone              String?
+  university         String?
+  etablissement_type String?  @default("public")
+  filiere            String?
+  account_type       String?  @default("student")
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime @default(now()) @db.Timestamptz(6)
+  role               UserRole @default(USER)
 
   seller                    Seller?
   orders                    Order[]
   reviews                   Review[]
+  favorites                 Favorite[]
+  notifications             Notification[]
   admin_logs                AdminLog[]
-  support_tickets_requested SupportTicket[] @relation("TicketRequester")
-  support_tickets_assigned  SupportTicket[] @relation("TicketAssignee")
+  support_tickets_requested SupportTicket[]    @relation("TicketRequester")
+  support_tickets_assigned  SupportTicket[]    @relation("TicketAssignee")
   support_ticket_replies    SupportTicketReply[]
-  reports_created           Report[] @relation("ReportCreator")
-  reports_resolved          Report[] @relation("ReportResolver")
+  reports_created           Report[]           @relation("ReportCreator")
+  reports_resolved          Report[]           @relation("ReportResolver")
 
   @@map("users")
 }
@@ -144,11 +149,12 @@ model Seller {
   shop_name               String             @unique
   description             String?
   verification_status     VerificationStatus @default(PENDING)
+  subscription_plan       SubscriptionPlan   @default(DECOUVERTE)
   subscription_expires_at DateTime?          @db.Timestamptz(6)
   created_at              DateTime           @default(now()) @db.Timestamptz(6)
   updated_at              DateTime           @default(now()) @db.Timestamptz(6)
 
-  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   shops   Shop[]
   reports Report[]
 
@@ -184,14 +190,28 @@ model Product {
   status       ProductStatus @default(APPROVED)
   created_at   DateTime      @default(now()) @db.Timestamptz(6)
   updated_at   DateTime      @default(now()) @db.Timestamptz(6)
-  order_items  OrderItem[]
-  reviews      Review[]
-  reports      Report[]
 
-  shop     Shop      @relation(fields: [shop_id], references: [id], onDelete: Cascade)
-  category Category? @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  order_items OrderItem[]
+  reviews     Review[]
+  reports     Report[]
+  favorites   Favorite[]
+  shop        Shop      @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  category    Category? @relation(fields: [category_id], references: [id], onDelete: SetNull)
 
   @@map("products")
+}
+
+model Favorite {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  product_id String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, product_id])
+  @@map("favorites")
 }
 
 model Order {
@@ -203,10 +223,10 @@ model Order {
   payment_id   String?     @unique @db.Uuid
   created_at   DateTime    @default(now()) @db.Timestamptz(6)
   updated_at   DateTime    @default(now()) @db.Timestamptz(6)
-  order_items  OrderItem[]
-  payment      Payment?
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  order_items OrderItem[]
+  payment     Payment?
+  user        User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("orders")
 }
@@ -261,12 +281,15 @@ model Review {
 
 model Notification {
   id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String?  @db.Uuid
   type       String
   title      String
   message    String
   metadata   Json     @default("{}")
   is_read    Boolean  @default(false)
   created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user User? @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
@@ -298,8 +321,8 @@ model SupportTicket {
   created_at  DateTime              @default(now()) @db.Timestamptz(6)
   updated_at  DateTime              @default(now()) @db.Timestamptz(6)
   resolved_at DateTime?             @db.Timestamptz(6)
-  replies     SupportTicketReply[]
 
+  replies  SupportTicketReply[]
   user     User  @relation("TicketRequester", fields: [user_id], references: [id], onDelete: Cascade)
   assignee User? @relation("TicketAssignee", fields: [assigned_to], references: [id], onDelete: SetNull)
 
@@ -334,7 +357,7 @@ model Report {
   updated_at  DateTime     @default(now()) @db.Timestamptz(6)
   resolved_at DateTime?    @db.Timestamptz(6)
 
-  reporter User    @relation("ReportCreator", fields: [user_id], references: [id], onDelete: Cascade)
+  reporter User     @relation("ReportCreator", fields: [user_id], references: [id], onDelete: Cascade)
   product  Product? @relation(fields: [product_id], references: [id], onDelete: SetNull)
   seller   Seller?  @relation(fields: [seller_id], references: [id], onDelete: SetNull)
   admin    User?    @relation("ReportResolver", fields: [resolved_by], references: [id], onDelete: SetNull)
@@ -365,4 +388,25 @@ model Setting {
   updated_at  DateTime @default(now()) @db.Timestamptz(6)
 
   @@map("settings")
+}
+
+model AdminOtp {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email      String
+  code       String
+  expires_at DateTime @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("admin_otps")
+}
+
+model AdminOtpRateLimit {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email            String    @unique
+  request_count    Int       @default(0)
+  first_request_at DateTime  @default(now()) @db.Timestamptz(6)
+  failed_attempts  Int       @default(0)
+  blocked_until    DateTime? @db.Timestamptz(6)
+
+  @@map("admin_otp_rate_limits")
 }
