@@ -31,7 +31,20 @@ export async function getPendingVendors() {
   })
 }
 
+export async function getAllVendors() {
+  await assertAdmin()
+  return prisma.seller.findMany({
+    include: {
+      user: { select: { email: true, name: true, created_at: true } },
+      shops: { select: { name: true, slug: true } },
+    },
+    orderBy: { created_at: 'desc' },
+  })
+}
+
 export async function approveVendor(sellerId: string): Promise<ActionResult> {
+  return { success: false, error: 'La validation manuelle des comptes vendeurs est désactivée.' }
+  /*
   try {
     await assertAdmin()
 
@@ -71,9 +84,12 @@ export async function approveVendor(sellerId: string): Promise<ActionResult> {
   } catch (err: any) {
     return { success: false, error: err.message ?? 'Erreur inconnue.' }
   }
+  */
 }
 
 export async function rejectVendor(sellerId: string, reason: string): Promise<ActionResult> {
+  return { success: false, error: 'La validation manuelle des comptes vendeurs est désactivée.' }
+  /*
   try {
     await assertAdmin()
     if (!reason.trim()) return { success: false, error: 'Le motif est obligatoire.' }
@@ -109,4 +125,5 @@ export async function rejectVendor(sellerId: string, reason: string): Promise<Ac
   } catch (err: any) {
     return { success: false, error: err.message ?? 'Erreur inconnue.' }
   }
+  */
 }

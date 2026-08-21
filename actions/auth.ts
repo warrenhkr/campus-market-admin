@@ -301,7 +301,6 @@ export async function verifyAdminOTP(email: string, code: string): Promise<OTPVe
   const { data: linkData, error: linkError } = await serviceClient.auth.admin.generateLink({
     type: 'magiclink',
     email: cleanEmail,
-    options: { shouldCreateUser: false },
   })
 
   if (linkError || !linkData?.properties?.hashed_token) {
@@ -384,9 +383,3 @@ export async function getAdminSessionWithUnreadCount() {
     unreadCount,
   }
 }
-e x p o r t   a s y n c   f u n c t i o n   a s s e r t A d m i n ( ) :   P r o m i s e < s t r i n g >   { 
-     c o n s t   {   s e s s i o n   }   =   a w a i t   g e t A d m i n S e s s i o n W i t h U n r e a d C o u n t ( ) 
-     i f   ( ! s e s s i o n )   t h r o w   n e w   E r r o r ( ' A c c è s   r e f u s é . ' ) 
-     r e t u r n   s e s s i o n . u s e r . i d 
- }  
- 
