@@ -60,12 +60,6 @@ export const paymentRefundSchema = z.object({
   reason: z.string().min(10).max(500),
 })
 
-// Seller schemas
-export const sellerVerificationSchema = z.object({
-  status: z.enum(['APPROVED', 'REJECTED']),
-  reason: z.string().min(10).max(500).optional(),
-})
-
 export const sellerSubscriptionSchema = z.object({
   days: z.coerce.number().int().min(1).max(365),
 })

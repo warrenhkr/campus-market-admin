@@ -5,8 +5,16 @@ import { useState } from 'react'
 import { FinanceKPIs } from './FinanceKPIs'
 import { RevenueChart } from './RevenueChart'
 import { PaymentHistoryTable } from './PaymentHistoryTable'
+import { WithdrawalRequests } from './WithdrawalRequests'
 
-export function FinancePageClient({ kpis, monthlyRevenue, payments }: any) {
+type FinancePageProps = {
+  kpis: Parameters<typeof FinanceKPIs>[0]['kpis']
+  monthlyRevenue: Parameters<typeof RevenueChart>[0]['data']
+  payments: Parameters<typeof PaymentHistoryTable>[0]['payments']
+  withdrawals: Parameters<typeof WithdrawalRequests>[0]['withdrawals']
+}
+
+export function FinancePageClient({ kpis, monthlyRevenue, payments, withdrawals }: FinancePageProps) {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
 
   function showToast(type: 'success' | 'error', msg: string) {
@@ -46,6 +54,7 @@ export function FinancePageClient({ kpis, monthlyRevenue, payments }: any) {
       </div>
 
       <PaymentHistoryTable payments={payments} onToast={showToast} />
+      <WithdrawalRequests withdrawals={withdrawals} onToast={showToast} />
     </div>
   )
 }

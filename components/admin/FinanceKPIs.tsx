@@ -4,6 +4,8 @@ type KPIs = {
   totalRevenue: number
   platformFee: number
   sellerEarnings: number
+  pendingPlatformFees: number
+  availablePlatformFees: number
   totalRefunded: number
   failedCount: number
   ordersCount: number
@@ -45,10 +47,24 @@ export function FinanceKPIs({ kpis }: { kpis: KPIs }) {
       color: 'text-red-600',
       border: 'border-red-200',
     },
+    {
+      label: 'Commissions en attente',
+      value: fmt(kpis.pendingPlatformFees),
+      sub: 'Paiements non confirmés',
+      color: 'text-amber-700',
+      border: 'border-amber-200',
+    },
+    {
+      label: 'Commissions disponibles',
+      value: fmt(kpis.availablePlatformFees),
+      sub: 'Ledger des paiements capturés',
+      color: 'text-emerald-700',
+      border: 'border-emerald-200',
+    },
   ]
 
   return (
-    <div className="grid grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
       {cards.map((c) => (
         <div key={c.label}
           className={`bg-white border ${c.border} rounded-xl p-4`}>
