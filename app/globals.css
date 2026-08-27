@@ -84,9 +84,9 @@
         -moz-osx-font-smoothing: grayscale;
     }
     select {
-        background-color: var(--surface-2);
-        color: var(--foreground);
-        border-color: var(--border);
+        background-color: var(--surface-2) !important;
+        color: var(--foreground) !important;
+        border-color: var(--border) !important;
     }
     select:focus {
         border-color: var(--ring);
